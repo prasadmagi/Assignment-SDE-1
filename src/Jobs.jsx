@@ -8,14 +8,6 @@ export const Jobs = () => {
     const [offset, setOffset] = useState(0)
     const [loading, setloading] = useState(false)
     const [filter, setFilter] = useState('all')
-    useEffect(() => {
-        fetchApi();
-        window.addEventListener('scroll', handleScroll);
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, [filter])
-
     const fetchApi = async () => {
         debugger
         setloading(true)
@@ -25,12 +17,12 @@ export const Jobs = () => {
         };
         try {
             const resp = await axios.post(URL, {
-                limit: 10,
+                limit: 20,
                 offset: offset
             })
             const result = await resp.data.jdList
             setJobdata(prevData => [...prevData, ...result]);
-            setOffset(prevOffset => prevOffset + 10);
+            setOffset(offset => offset + 10);
             console.log(result, "result");
         } catch (error) {
             console.log(error, "error");
@@ -40,12 +32,31 @@ export const Jobs = () => {
 
 
     }
+    useEffect(() => {
+        fetchApi();
+
+    }, [filter])
+    useEffect(() => {
+        const handleScroll = () => {
+            const { scrollTop, clientHeight, scrollHeight } =
+                document.documentElement;
+            if (scrollTop + clientHeight >= scrollHeight - 20) {
+                fetchApi();
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll);
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+        };
+    }, [fetchApi]);
+
     const handleScroll = () => {
         if (
             window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight && !loading
         ) {
-            // fetchData();
-            setTimeout(fetchData, 500)
+            fetchApi();
+            // setTimeout(fetchData, 500)
         }
     };
     const handleApply = (link) => {
@@ -92,34 +103,37 @@ export const Jobs = () => {
                 </ToggleButton>
             </ToggleButtonGroup>
             <Grid container spacing={3}>
-                {filteredData.map((item, index) => (
-                    <Grid item key={index} xs={12} sm={6} md={4}>
-                        <Card elevation={5}>
-                            <CardContent>
-                                <Typography variant="h2" component="div">
-                                    {`${item.jobRole.charAt(0).toUpperCase()}${item.jobRole.slice(1)}`}
-                                </Typography>
-                                <Typography variant="h5" component="div">
-                                    {item.location}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    {item.jobDetailsFromCompany}
-                                </Typography>
-
-                            </CardContent>
-                            <CardActions>
-                                <Button className="primary" variant="contained" color="secondary" size="medium" onClick={() => handleApply(item.jdLink)}> Apply</Button>
-                            </CardActions>
-                        </Card>
-                    </Grid>
-                ))}
+                {loading ? (
+                    Array.from({ length: 10 }).map((_, index) => (
+                        <Grid item key={index} xs={12} sm={6} md={4}>
+                            <Skeleton variant="rectangular" width="100%" height={200} />
+                        </Grid>
+                    ))
+                ) : (
+                    filteredData.map((item, index) => (
+                        <Grid item key={index} xs={12} sm={6} md={4}>
+                            <Card elevation={5}>
+                                <CardContent>
+                                    <Typography variant="h2" component="div">
+                                        {`${item.jobRole.charAt(0).toUpperCase()}${item.jobRole.slice(1)}`}
+                                    </Typography>
+                                    <Typography variant="h5" component="div">
+                                        {item.location}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        {item.jobDetailsFromCompany}
+                                    </Typography>
+                                </CardContent>
+                                <CardActions>
+                                    <Button className="primary" variant="contained" color="secondary" size="medium" onClick={() => handleApply(item.jdLink)}> Apply</Button>
+                                </CardActions>
+                            </Card>
+                        </Grid>
+                    ))
+                )}
             </Grid>
-            {/* {loading && <CircularProgress />} */}
-            {loading && Array.from({ length: 10 }).map((_, index) => (
-                <Grid item key={index} xs={12} sm={6} md={4}>
-                    <Skeleton variant="rectangular" width="100%" height={200} />
-                </Grid>
-            ))}
+            {loading && <CircularProgress style={{ margin: '1rem auto', display: 'block' }} />}
+
         </>
     )
 }
