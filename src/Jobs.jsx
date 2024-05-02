@@ -24,7 +24,7 @@ export const Jobs = () => {
     const [filter, setFilter] = useState('all');
     const [minExperience, setMinExperience] = useState(0);
     const [maxExperience, setMaxExperience] = useState(10);
-
+    // API call Here
     const fetchApi = async () => {
         setLoading(true);
         try {
@@ -42,14 +42,14 @@ export const Jobs = () => {
         }
     };
 
+    // call apicall function here with dependency as filter
     useEffect(() => {
-        // api call here wwith filter as dependency
         fetchApi();
     }, [filter]);
 
     useEffect(() => {
-        // for infinte scroll
         const handleScroll = () => {
+            // for infinte scroll
             const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
             if (scrollTop + clientHeight >= scrollHeight - 20) {
                 fetchApi();
@@ -62,22 +62,22 @@ export const Jobs = () => {
         };
     }, []);
 
+    // to open link externally
     const handleApply = (link) => {
-        // to open link externally
         window.open(`${link}`, '_blank');
     };
-
+    // filter using jobs
     const handleJobFilterChange = (event, newFilter) => {
         setJobdata([]);
         setOffset(0);
         setFilter(newFilter);
     };
-
+    // filter using exp
     const handleExperienceChange = (event, newValue) => {
         setMinExperience(newValue[0]);
         setMaxExperience(newValue[1]);
     };
-
+    // main filter data
     const filteredData = jobdata.filter(item => {
         if (filter === 'remote') {
             return item.location === 'remote';
@@ -90,7 +90,7 @@ export const Jobs = () => {
         const maxExp = item.maxExp || 10;
         return minExp >= minExperience && maxExp <= maxExperience;
     });
-
+    // ui part
     return (
         <>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
@@ -134,7 +134,7 @@ export const Jobs = () => {
                     />
                 </div>
             </div>
-            {/* Job Cards */}
+            {/* Job Cards with skelton loading */}
             <Grid container spacing={3}>
                 {loading ? (
                     Array.from({ length: 10 }).map((_, index) => (
@@ -196,6 +196,7 @@ export const Jobs = () => {
                     ))
                 )}
             </Grid>
+            {/* Loading parts */}
             {loading && <CircularProgress style={{ margin: '1rem auto', display: 'block' }} />}
         </>
     );
