@@ -11,13 +11,13 @@ Before running the project, ensure you have [Node.js](https://nodejs.org/) insta
 1. Clone this repository to your local machine:
 
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/prasadmagi/Assignment-SDE-1.git
     ```
 
 2. Navigate into the project directory:
 
     ```bash
-    cd <project-directory>
+    cd .
     ```
 
 3. Install dependencies:
