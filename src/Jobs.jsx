@@ -1,45 +1,56 @@
-import axios from 'axios'
-import React, { useEffect, useState } from 'react'
-import { Card, CardContent, CardActions, Button, Typography, Grid, CircularProgress, Skeleton, ToggleButtonGroup, ToggleButton } from '@mui/material';
-const URL = "https://api.weekday.technology/adhoc/getSampleJdJSON"
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import {
+    Card,
+    CardContent,
+    CardActions,
+    Button,
+    Typography,
+    Grid,
+    CircularProgress,
+    Skeleton,
+    ToggleButtonGroup,
+    ToggleButton,
+    Slider
+} from '@mui/material';
+
+const URL = "https://api.weekday.technology/adhoc/getSampleJdJSON";
+
 export const Jobs = () => {
-    const [jobdata, setJobdata] = useState([])
-    const [displayedCards, setDisplayedCards] = useState(10)
-    const [offset, setOffset] = useState(0)
-    const [loading, setloading] = useState(false)
-    const [filter, setFilter] = useState('all')
+    const [jobdata, setJobdata] = useState([]);
+    const [displayedCards, setDisplayedCards] = useState(10);
+    const [offset, setOffset] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [filter, setFilter] = useState('all');
+    const [minExperience, setMinExperience] = useState(0);
+    const [maxExperience, setMaxExperience] = useState(10);
+
     const fetchApi = async () => {
-        debugger
-        setloading(true)
-        const raw = {
-            "limit": displayedCards,
-            "offset": offset
-        };
+        setLoading(true);
         try {
             const resp = await axios.post(URL, {
-                limit: 20,
+                limit: displayedCards,
                 offset: offset
-            })
-            const result = await resp.data.jdList
+            });
+            const result = await resp.data.jdList;
             setJobdata(prevData => [...prevData, ...result]);
             setOffset(offset => offset + 10);
-            console.log(result, "result");
         } catch (error) {
             console.log(error, "error");
         } finally {
-            setloading(false)
+            setLoading(false);
         }
+    };
 
-
-    }
     useEffect(() => {
+        // api call here wwith filter as dependency
         fetchApi();
+    }, [filter]);
 
-    }, [filter])
     useEffect(() => {
+        // for infinte scroll
         const handleScroll = () => {
-            const { scrollTop, clientHeight, scrollHeight } =
-                document.documentElement;
+            const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
             if (scrollTop + clientHeight >= scrollHeight - 20) {
                 fetchApi();
             }
@@ -49,59 +60,81 @@ export const Jobs = () => {
         return () => {
             window.removeEventListener("scroll", handleScroll);
         };
-    }, [fetchApi]);
+    }, []);
 
-    const handleScroll = () => {
-        if (
-            window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight && !loading
-        ) {
-            fetchApi();
-            // setTimeout(fetchData, 500)
-        }
-    };
     const handleApply = (link) => {
-        debugger
+        // to open link externally
         window.open(`${link}`, '_blank');
-        // setDisplayedCards(prev => prev + 10); // Increase the number of displayed cards by 10
     };
-    const handleFilterChange = (event, newFilter) => {
-        debugger
+
+    const handleJobFilterChange = (event, newFilter) => {
         setJobdata([]);
         setOffset(0);
         setFilter(newFilter);
     };
+
+    const handleExperienceChange = (event, newValue) => {
+        setMinExperience(newValue[0]);
+        setMaxExperience(newValue[1]);
+    };
+
     const filteredData = jobdata.filter(item => {
-        debugger
         if (filter === 'remote') {
             return item.location === 'remote';
         } else if (filter === 'onsite') {
             return item.location !== 'remote';
         }
         return true;
+    }).filter(item => {
+        const minExp = item.minExp || 0;
+        const maxExp = item.maxExp || 10;
+        return minExp >= minExperience && maxExp <= maxExperience;
     });
+
     return (
         <>
-            <Typography variant="body2" color="text.secondary" style={{ marginLeft: '1rem' }}>
-                Location:
-            </Typography>
-            <ToggleButtonGroup
-                value={filter}
-                exclusive
-                onChange={handleFilterChange}
-                aria-label="text alignment"
-                style={{ marginBottom: '2rem' }}
-            >
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
+                {/* Location Filter */}
+                <div style={{ marginRight: '2rem' }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Location:
+                    </Typography>
+                    <ToggleButtonGroup
+                        value={filter}
+                        exclusive
+                        onChange={handleJobFilterChange}
+                        aria-label="text alignment"
+                        style={{ marginTop: '0.5rem' }}
+                    >
+                        <ToggleButton value="all" aria-label="left aligned">
+                            All
+                        </ToggleButton>
+                        <ToggleButton value="remote" aria-label="centered">
+                            Remote
+                        </ToggleButton>
+                        <ToggleButton value="onsite" aria-label="right aligned">
+                            Onsite
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                </div>
 
-                <ToggleButton value="all" aria-label="left aligned">
-                    All
-                </ToggleButton>
-                <ToggleButton value="remote" aria-label="centered">
-                    Remote
-                </ToggleButton>
-                <ToggleButton value="onsite" aria-label="right aligned">
-                    Onsite
-                </ToggleButton>
-            </ToggleButtonGroup>
+                {/* Experience Filter */}
+                <div>
+                    <Typography variant="body2" color="text.secondary">
+                        Experience:
+                    </Typography>
+                    <Slider
+                        value={[minExperience, maxExperience]}
+                        onChange={handleExperienceChange}
+                        min={0}
+                        max={20}
+                        valueLabelDisplay="auto"
+                        aria-labelledby="range-slider"
+                        style={{ margin: '0.5rem 0', maxWidth: '500px' }}
+                    />
+                </div>
+            </div>
+            {/* Job Cards */}
             <Grid container spacing={3}>
                 {loading ? (
                     Array.from({ length: 10 }).map((_, index) => (
@@ -112,20 +145,51 @@ export const Jobs = () => {
                 ) : (
                     filteredData.map((item, index) => (
                         <Grid item key={index} xs={12} sm={6} md={4}>
-                            <Card elevation={5}>
+                            <Card elevation={5} style={{ borderRadius: "10px", border: "1px solid #ccc" }}>
                                 <CardContent>
-                                    <Typography variant="h2" component="div">
-                                        {`${item.jobRole.charAt(0).toUpperCase()}${item.jobRole.slice(1)}`}
-                                    </Typography>
-                                    <Typography variant="h5" component="div">
-                                        {item.location}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {item.jobDetailsFromCompany}
-                                    </Typography>
+                                    <div>
+                                        <Typography variant="h7" component="span" style={{ fontWeight: "bold" }} >
+                                            Job Role:
+                                        </Typography>
+                                        <Typography variant="h7" component="span">
+                                            {`${item.jobRole.charAt(0).toUpperCase()}${item.jobRole.slice(1)}`}
+                                        </Typography>
+                                    </div>
+                                    <div>
+                                        <Typography variant="h7" component="span" style={{ fontWeight: "bold" }}>
+                                            Location:
+                                        </Typography>
+                                        <Typography variant="h7" component="span">
+                                            {item.location}
+                                        </Typography>
+                                    </div>
+                                    <div>
+                                        <Typography variant="h7" component="span" style={{ fontWeight: "bold" }}>
+                                            Experience:
+                                        </Typography>
+                                        <Typography variant="h7" component="span">
+                                            {item.minExp === null || item.maxExp === null ? "NA" : ` ${item.minExp}-${item.maxExp}Years`}
+                                        </Typography>
+                                    </div>
+                                    <div>
+                                        <Typography variant="h7" component="span" style={{ fontWeight: "bold" }}>
+                                            Salary:
+                                        </Typography>
+                                        <Typography variant="h7" component="span">
+                                            {item.minJdSalary === null || item.maxJdSalary === null ? "NA" : ` ${item.minJdSalary}-${item.maxJdSalary} ${item.salaryCurrencyCode}`}
+                                        </Typography>
+                                    </div>
+                                    <div>
+                                        <Typography variant="h7" component="span" style={{ fontWeight: "bold" }}>
+                                            Job Details:
+                                        </Typography>
+                                        <Typography variant="body2" style={{ maxHeight: '150px', overflowY: 'auto' }} color="text.secondary">
+                                            {item.jobDetailsFromCompany}
+                                        </Typography>
+                                    </div>
                                 </CardContent>
                                 <CardActions>
-                                    <Button className="primary" variant="contained" color="secondary" size="medium" onClick={() => handleApply(item.jdLink)}> Apply</Button>
+                                    <Button className="primary" variant="contained" color="primary" size="medium" onClick={() => handleApply(item.jdLink)}> Apply</Button>
                                 </CardActions>
                             </Card>
                         </Grid>
@@ -133,7 +197,6 @@ export const Jobs = () => {
                 )}
             </Grid>
             {loading && <CircularProgress style={{ margin: '1rem auto', display: 'block' }} />}
-
         </>
-    )
-}
+    );
+};
