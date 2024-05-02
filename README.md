@@ -17,7 +17,7 @@ Before running the project, ensure you have [Node.js](https://nodejs.org/) insta
 2. Navigate into the project directory:
 
     ```bash
-    cd .
+    cd Assignment-SDE-1
     ```
 
 3. Install dependencies:
@@ -32,11 +32,11 @@ Before running the project, ensure you have [Node.js](https://nodejs.org/) insta
     npm run dev
     ```
 
-5. Open your browser and visit [http://localhost:3000](http://localhost:3000) to view the app.
+5. Open your browser and visit [http://127.0.0.1:5173/](http://127.0.0.1:5173/) to view the app.
 
 ## Available Scripts
 
 In the project directory, you can run:
 
-- **`npm run dev`**: Runs the app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **`npm run dev`**: Runs the app in development mode. Open http://127.0.0.1:5173/ to view it in the browser.
 - **`npm run build`**: Builds the app for production to the `di
